@@ -1,0 +1,13 @@
+# Pipeline core
+PyMuPDF>=1.24        # PDF words + built-in Tesseract OCR (needs system `tesseract`)
+# System dependency (install separately): tesseract  +  TESSDATA_PREFIX pointing at tessdata
+#   macOS:  brew install tesseract   ->   TESSDATA_PREFIX=/opt/homebrew/share/tessdata
+
+# API bridge + product
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9   # file uploads
+fpdf2>=2.7                # readiness packet PDF
+
+# Live upload path only (arbitrary documents). Scored submission never uses this.
+openai>=1.40              # vision extraction; requires OPENAI_API_KEY in .env
