@@ -21,21 +21,21 @@ model-free.** Two extraction backends feed one deterministic reasoning core.
 
 ```
             ┌──────────────── extraction (pluggable) ────────────────┐
- documents →│  TemplateExtractor  — layout/label geometry, offline    │
-            │  VisionExtractor    — OpenAI vision, arbitrary uploads   │
+ documents →│  TemplateExtractor  — layout/label geometry, offline   │ 
+            │  VisionExtractor    — OpenAI vision, arbitrary uploads │
             └───────────────────────────┬────────────────────────────┘
-                        normalized fields + source boxes + confidence
+                 normalized fields + source boxes + confidence
                             ┌───────────▼────────────┐
-                            │   DETERMINISTIC CORE    │  no model past this line
-                            │  income (HUD 4350.3)    │
-                            │  income-limit lookup    │
-                            │  readiness + reasons    │
-                            │  document checklist     │
-                            │  rules Q&A (corpus)     │
-                            │  confidence calibration │
+                            │   DETERMINISTIC CORE   │  no model past this line
+                            │  income (HUD 4350.3)   │
+                            │  income-limit lookup   │
+                            │  readiness + reasons   │
+                            │  document checklist    │
+                            │  rules Q&A (corpus)    │
+                            │  confidence calibration│
                             └───────────┬────────────┘
-                  FastAPI  ─────────────┼─────────────  Next.js UI
-              sessions · packet · audit                Profile → Understand → Prepare
+                  FastAPI   ────────────┼─────────────  Next.js UI
+       sessions · packet · audit                Profile → Understand → Prepare
 ```
 
 ### Extraction
