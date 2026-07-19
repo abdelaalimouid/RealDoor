@@ -20,14 +20,16 @@ const FIELD_LABEL: Record<string, string> = {
 const key = (docId: string, f: string) => `${docId}:${f}`;
 
 export function Journey({
-  data, onReassess, onAsk, onConfirm, packetHref, onDelete, onUpload, busyUpload,
+  data, onReassess, onAsk, onConfirm, packetHref, onPacket, onDelete, deleteLabel, onUpload, busyUpload,
 }: {
   data: Assessment;
   onReassess: (overrides: Record<string, Record<string, any>>) => Promise<Assessment>;
   onAsk: (q: string) => Promise<any>;
   onConfirm?: (docId: string, field: string) => void;
   packetHref: string;
+  onPacket?: () => Promise<void>;
   onDelete?: () => void;
+  deleteLabel?: string;
   onUpload?: (files: FileList) => void;
   busyUpload?: boolean;
 }) {
@@ -201,7 +203,7 @@ export function Journey({
           )}
 
           {doc && step === 2 && <Understand data={data} onAsk={onAsk} />}
-          {step === 3 && <Prepare data={data} packetHref={packetHref} onDelete={onDelete} allConfirmed={allConfirmed}
+          {step === 3 && <Prepare data={data} packetHref={packetHref} onPacket={onPacket} onDelete={onDelete} deleteLabel={deleteLabel} allConfirmed={allConfirmed}
                                   confirmedCount={confirmed.size} totalFields={allFields.length} />}
         </div>
       </div>
@@ -340,9 +342,25 @@ function describe(s: any): React.ReactNode {
 }
 
 /* ------------------------------------------------------------------ Prepare ---- */
-function Prepare({ data, packetHref, onDelete, allConfirmed, confirmedCount, totalFields }:
-  { data: Assessment; packetHref: string; onDelete?: () => void; allConfirmed: boolean; confirmedCount: number; totalFields: number }) {
+function Prepare({ data, packetHref, onPacket, onDelete, deleteLabel, allConfirmed, confirmedCount, totalFields }:
+  { data: Assessment; packetHref: string; onPacket?: () => Promise<void>; onDelete?: () => void; deleteLabel?: string; allConfirmed: boolean; confirmedCount: number; totalFields: number }) {
   const ready = data.readiness_status === "READY_TO_REVIEW";
+  const [packetBusy, setPacketBusy] = useState(false);
+  const [packetError, setPacketError] = useState<string | null>(null);
+
+  async function downloadPacket() {
+    if (!onPacket) return;
+    setPacketBusy(true);
+    setPacketError(null);
+    try {
+      await onPacket();
+    } catch {
+      setPacketError("Could not build the readiness packet. Please try again.");
+    } finally {
+      setPacketBusy(false);
+    }
+  }
+
   return (
     <section aria-label="Prepare — readiness packet">
       <h3>Readiness packet</h3>
@@ -386,13 +404,21 @@ function Prepare({ data, packetHref, onDelete, allConfirmed, confirmedCount, tot
           Confirm all values first ({confirmedCount} of {totalFields}) to finalize the packet.
         </p>
       )}
+      {packetError && <p className="callout blocked small" style={{ marginBottom: 10 }}>{packetError}</p>}
       <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-        <a className="btn" href={allConfirmed ? packetHref : undefined} target="_blank" rel="noreferrer"
-          aria-disabled={!allConfirmed}
-          style={{ opacity: allConfirmed ? 1 : 0.45, pointerEvents: allConfirmed ? "auto" : "none" }}>
-          Download readiness packet (PDF)
-        </a>
-        {onDelete && <button className="ghost btn" onClick={onDelete}>Delete this session</button>}
+        {onPacket ? (
+          <button className="btn" onClick={downloadPacket} disabled={!allConfirmed || packetBusy}
+            aria-disabled={!allConfirmed} style={{ opacity: allConfirmed ? 1 : 0.45 }}>
+            {packetBusy ? "Building packet…" : "Download readiness packet (PDF)"}
+          </button>
+        ) : (
+          <a className="btn" href={allConfirmed ? packetHref : undefined} target="_blank" rel="noreferrer"
+            aria-disabled={!allConfirmed}
+            style={{ opacity: allConfirmed ? 1 : 0.45, pointerEvents: allConfirmed ? "auto" : "none" }}>
+            Download readiness packet (PDF)
+          </a>
+        )}
+        {onDelete && <button className="ghost btn" onClick={onDelete}>{deleteLabel ?? "Delete this session"}</button>}
       </div>
       <p className="small" style={{ marginTop: 12 }}>{data.decision_boundary}</p>
     </section>

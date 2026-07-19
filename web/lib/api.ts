@@ -56,6 +56,34 @@ export type HouseholdSummary = {
   review_reasons: string[];
 };
 
+/**
+ * The normalized record returned by the hosted upload extractor. It deliberately
+ * excludes raw upload bytes and the browser-only preview image.
+ */
+export type ExtractedDocument = {
+  document_id: string;
+  document_type: string;
+  file_name: string;
+  employer: string | null;
+  page_size_points: [number, number];
+  fields: Array<Record<string, any>>;
+  extraction_confidence?: number | null;
+  consistency_checks?: Array<Record<string, any>>;
+  quarantined_instruction?: string | null;
+};
+
+export type UploadExtraction = {
+  document: ExtractedDocument;
+  /** Browser-held preview returned only with the extraction response. */
+  image_url: string;
+};
+
+export type UploadAuditEvent = {
+  ts: string;
+  action: string;
+  detail: Record<string, string>;
+};
+
 const j = (r: Response) => {
   if (!r.ok) throw new Error(`${r.status}`);
   return r.json();
@@ -63,6 +91,40 @@ const j = (r: Response) => {
 
 const post = (url: string, body: any) =>
   fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then(j);
+
+const uploadState = (
+  documents: ExtractedDocument[],
+  overrides: Record<string, Record<string, any>> = {},
+  audit: UploadAuditEvent[] = [],
+) => ({ documents, overrides, audit });
+
+/**
+ * Local development keeps the original session-based sample API. The deployed
+ * workspace uses the stateless Vercel API, whose function instances share no memory.
+ */
+export const usesStatelessUploads = () => {
+  if (typeof window === "undefined") return false;
+  return !["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+};
+
+export async function downloadUploadPacket(
+  documents: ExtractedDocument[],
+  overrides: Record<string, Record<string, any>>,
+  audit: UploadAuditEvent[],
+) {
+  const r = await fetch("/api/uploads/packet.pdf", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(uploadState(documents, overrides, audit)),
+  });
+  if (!r.ok) throw new Error(`${r.status}`);
+  const url = URL.createObjectURL(await r.blob());
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "realdoor-readiness-packet.pdf";
+  link.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
+}
 
 export const api = {
   meta: () => fetch("/api/meta").then(j),
@@ -92,6 +154,24 @@ export const api = {
     post(`/api/sessions/${sid}/confirm`, { document_id, field }),
   sessionPacket: (sid: string) => `/api/sessions/${sid}/packet.pdf`,
   deleteSession: (sid: string) => fetch(`/api/sessions/${sid}`, { method: "DELETE" }).then(j),
+
+  // hosted upload flow: all state is supplied by the browser on every request
+  extractUpload: (file: File): Promise<UploadExtraction> => {
+    const fd = new FormData();
+    fd.append("file", file);
+    return fetch("/api/uploads/extract", { method: "POST", body: fd }).then(j);
+  },
+  uploadReassess: (
+    documents: ExtractedDocument[],
+    overrides: Record<string, Record<string, any>> = {},
+    audit: UploadAuditEvent[] = [],
+  ): Promise<Assessment> => post("/api/uploads/reassess", uploadState(documents, overrides, audit)),
+  uploadAsk: (
+    documents: ExtractedDocument[],
+    overrides: Record<string, Record<string, any>> = {},
+    audit: UploadAuditEvent[] = [],
+    question: string,
+  ) => post("/api/uploads/ask", { ...uploadState(documents, overrides, audit), question }),
 };
 
 export const money = (n: number | null) =>
