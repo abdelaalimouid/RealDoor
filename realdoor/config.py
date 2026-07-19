@@ -29,16 +29,19 @@ MODEL_DISCLOSURE = {
 SESSION_TTL_SECONDS = int(os.environ.get("REALDOOR_SESSION_TTL", "3600"))
 API_KEY = os.environ.get("REALDOOR_API_KEY", "")   # optional gate for the REST API
 
-# Reference dataset directory: income-limit tables, the rule corpus, sample documents,
-# and gold labels. Provided out-of-band (not bundled). Set REALDOOR_PACK, or place the
-# directory at <repo>/data.
-PACK = Path(os.environ.get("REALDOOR_PACK") or Path(__file__).resolve().parents[1] / "data")
+# Bundled reference data (committed): public income-limit table + rule corpus. Always
+# present, so the upload path, rules, and thresholds work in any deployment.
+REFERENCE = Path(__file__).resolve().parent / "reference"
+MTSP_CSV = REFERENCE / "income_limits.csv"
+RULES_JSONL = REFERENCE / "rule_corpus.jsonl"
 
+# Optional sample dataset (documents + gold labels), provided out-of-band and not bundled.
+# Set REALDOOR_PACK, or place it at <repo>/data. When absent, sample households are simply
+# unavailable; uploads, rules, thresholds, and the packet all still work.
+PACK = Path(os.environ.get("REALDOOR_PACK") or Path(__file__).resolve().parents[1] / "data")
 DOCS_DIR = PACK / "synthetic_documents" / "documents"
 GOLD_DOCS = PACK / "synthetic_documents" / "gold" / "document_gold.jsonl"
 MANIFEST = PACK / "synthetic_documents" / "gold" / "document_manifest.csv"
-MTSP_CSV = PACK / "data" / "mtsp_2026_boston_cambridge_quincy.csv"
-RULES_JSONL = PACK / "rules" / "rule_corpus.jsonl"
 CHECKLISTS = PACK / "evaluation" / "application_checklists.json"
 QA_GOLD = PACK / "evaluation" / "qa_gold.jsonl"
 ADVERSARIAL = PACK / "evaluation" / "adversarial_tests.jsonl"

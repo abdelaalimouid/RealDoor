@@ -1,11 +1,13 @@
-"""Loaders for the frozen organizer pack (rules, MTSP table, gold, checklists)."""
+"""Data loaders: bundled reference (income limits, rules) and the optional sample set."""
 from __future__ import annotations
-import csv, json
+import csv, json, os
 from functools import lru_cache
 from . import config as C
 
 
 def _jsonl(path):
+    if not os.path.exists(path):          # optional sample data may be absent (e.g. in prod)
+        return []
     with open(path, encoding="utf-8") as f:
         return [json.loads(line) for line in f if line.strip()]
 
@@ -39,12 +41,16 @@ def threshold_for(household_size: int):
 
 @lru_cache(maxsize=1)
 def checklists() -> dict:
+    if not os.path.exists(C.CHECKLISTS):
+        return {}
     with open(C.CHECKLISTS, encoding="utf-8") as f:
         return {c["household_id"]: c for c in json.load(f)}
 
 
 @lru_cache(maxsize=1)
 def manifest() -> list:
+    if not os.path.exists(C.MANIFEST):        # sample documents not present -> no samples
+        return []
     with open(C.MANIFEST, encoding="utf-8") as f:
         return list(csv.DictReader(f))
 

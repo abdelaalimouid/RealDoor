@@ -1,0 +1,15 @@
+# Render blueprint for the RealDoor API (Docker web service).
+# Deploy: Render dashboard -> New -> Blueprint -> connect this repo, or New -> Web Service
+# (Docker). Set OPENAI_API_KEY in the dashboard (marked sync:false below).
+services:
+  - type: web
+    name: realdoor-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/meta
+    autoDeploy: true
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false

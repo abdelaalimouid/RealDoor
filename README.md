@@ -141,9 +141,13 @@ Dockerfile  container image for the API
 
 ## Deployment
 
-- **API** — `docker build -t realdoor-api .` then run with `OPENAI_API_KEY` and the reference
-  data provided as a volume or baked into the image.
-- **Web** — deploy `web/` (e.g. Vercel); set `REALDOOR_API` to the API URL.
+The bundled reference data (`realdoor/reference/`) makes the API self-contained: uploads,
+rules, thresholds, and the packet work without the optional sample set.
+
+- **API** — containerized (`Dockerfile`). A `render.yaml` blueprint is included; deploy as a
+  Docker web service and set `OPENAI_API_KEY`. Health check: `/api/meta`.
+- **Web** — deploy `web/` on Vercel (root directory `web/`); set `REALDOOR_API` to the API
+  URL. The app proxies `/api/*` to it, so the browser stays same-origin.
 
 ## License
 
