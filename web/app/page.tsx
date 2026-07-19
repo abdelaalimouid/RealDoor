@@ -40,9 +40,11 @@ export default function Home() {
           <Link href="/workspace" className="btn" style={{ fontSize: "1.02rem", padding: "13px 22px" }}>
             Upload your documents →
           </Link>
-          <a href="#samples" className="btn ghost" style={{ fontSize: "1.02rem", padding: "13px 22px" }}>
-            Or try a sample case
-          </a>
+          {(rows?.length ?? 0) > 0 && (
+            <a href="#samples" className="btn ghost" style={{ fontSize: "1.02rem", padding: "13px 22px" }}>
+              Or try a sample case
+            </a>
+          )}
         </div>
         <p className="small" style={{ marginTop: 10 }}>Synthetic/test documents only · processed in memory, never stored.</p>
       </section>
@@ -58,15 +60,17 @@ export default function Home() {
         ))}
       </div>
 
-      <div id="samples" style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 16, scrollMarginTop: 20 }}>
-        <h2>Sample case files</h2>
-        <span className="small">six synthetic households — pick one to walk their readiness journey</span>
-      </div>
-
       {err && (
         <div className="callout blocked"><div className="h">API not reachable</div>
           Start the bridge: <span className="mono">uvicorn api.main:app --port 8000</span> from <span className="mono">realdoor/</span>.
         </div>
+      )}
+
+      {(rows?.length ?? 0) > 0 && (
+      <div id="samples" style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 16, scrollMarginTop: 20 }}>
+        <h2>Sample case files</h2>
+        <span className="small">six synthetic households — pick one to walk their readiness journey</span>
+      </div>
       )}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 18 }}>
