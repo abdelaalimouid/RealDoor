@@ -1,0 +1,193 @@
+/* RealDoor — "E-Ink / Paper" design language.
+   Palette: trust navy + signature green + audit-trail ink on warm paper.
+   Everything reads like a printed, stamped document a caseworker could trust. */
+
+:root {
+  --navy: #1e3a5f;
+  --navy-700: #16304f;
+  --blue: #2563eb;
+  --green: #157f43;      /* "confirmed / traced to source" (AA on paper) */
+  --amber: #9a5b0a;      /* "needs review" — attention, not error */
+  --red: #b42318;        /* hard errors / blocked injection only */
+  --paper: #f7f5ef;      /* warm paper */
+  --card: #fffdf8;       /* sheet */
+  --ink: #14181f;
+  --ink-soft: #47505c;
+  --muted: #ece7db;
+  --line: #d9d2c4;       /* decorative hairline rule */
+  --input-border: #7d7461; /* form-control boundary — 4.55:1 (WCAG 1.4.11) */
+  --ring: #1e3a5f;
+
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace;
+  --shadow: 0 1px 0 rgba(20, 24, 31, 0.04), 0 12px 30px -18px rgba(20, 24, 31, 0.35);
+  --radius: 6px;
+}
+
+* { box-sizing: border-box; }
+
+html, body { padding: 0; margin: 0; }
+
+body {
+  background-color: var(--paper);
+  /* faint paper grain */
+  background-image:
+    radial-gradient(circle at 25% 15%, rgba(30, 58, 95, 0.03), transparent 45%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+  color: var(--ink);
+  font-family: var(--font-atkinson), system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--navy); text-underline-offset: 3px; }
+
+h1, h2, h3 { color: var(--navy); font-weight: 700; letter-spacing: -0.01em; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(1.9rem, 3vw, 2.7rem); }
+h2 { font-size: 1.35rem; }
+h3 { font-size: 1.02rem; }
+
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.tnum { font-variant-numeric: tabular-nums; }
+
+/* ---- layout scaffolding ------------------------------------------------------------- */
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+.masthead {
+  border-bottom: 1.5px solid var(--ink);
+  background: var(--paper);
+}
+.masthead .wrap { display: flex; align-items: baseline; justify-content: space-between; padding-block: 18px; }
+.brand { display: flex; align-items: baseline; gap: 12px; }
+.brand .logo { font-weight: 700; font-size: 1.35rem; color: var(--navy); letter-spacing: -0.02em; }
+.brand .kicker { font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+.masthead .edition { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-soft); }
+
+/* ---- sheet / card ------------------------------------------------------------------- */
+.sheet {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.sheet.ruled { background-image: linear-gradient(var(--muted) 1px, transparent 1px); background-size: 100% 32px; }
+
+/* ---- passport stamp (status) -------------------------------------------------------- */
+.stamp {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  font-size: 0.74rem; padding: 7px 12px; border-radius: 4px;
+  border: 2px solid currentColor; transform: rotate(-1.2deg);
+}
+.stamp::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.stamp.ready { color: var(--green); }
+.stamp.review { color: var(--amber); }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem;
+  padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--paper);
+  color: var(--ink-soft); font-family: var(--mono);
+}
+
+/* ---- buttons ------------------------------------------------------------------------ */
+button, .btn {
+  font: inherit; cursor: pointer; border-radius: 5px; border: 1.5px solid var(--navy);
+  background: var(--navy); color: #fff; padding: 10px 16px; font-weight: 700;
+  min-height: 24px;   /* WCAG 2.2 AA target size (2.5.8) */
+  transition: transform 0.12s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+/* Form-control boundaries meet non-text contrast (1.4.11), overriding inline colors. */
+input:not([type="checkbox"]):not([type="radio"]), textarea, select {
+  border-color: var(--input-border) !important;
+}
+button:hover, .btn:hover { background: var(--navy-700); }
+button:active { transform: translateY(1px); }
+.btn.ghost { background: transparent; color: var(--navy); }
+.btn.ghost:hover { background: var(--muted); }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ---- accessibility: visible focus, motion preference -------------------------------- */
+:where(a, button, input, [tabindex], summary):focus-visible {
+  outline: 3px solid var(--ring); outline-offset: 2px; border-radius: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+
+/* ---- document viewer + source boxes ------------------------------------------------- */
+.docstage { position: relative; display: block; width: 100%; max-width: 100%; background: #fff; box-shadow: var(--shadow); border: 1px solid var(--line); }
+.docstage img { display: block; width: 100%; height: auto; }
+.srcbox {
+  position: absolute; border: 2px solid rgba(30, 58, 95, 0.55);
+  background: rgba(37, 99, 235, 0.08); border-radius: 2px; pointer-events: none;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+.srcbox.active {
+  border-color: var(--green); background: rgba(21, 127, 67, 0.16);
+  box-shadow: 0 0 0 2px rgba(21, 127, 67, 0.25);
+}
+.srcbox.injection { border-color: var(--red); background: rgba(180, 35, 24, 0.12); }
+
+/* ---- field ledger rows -------------------------------------------------------------- */
+.field-row {
+  display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; align-items: center;
+  padding: 10px 12px; border: 1px solid transparent; border-radius: 5px; cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.field-row:hover, .field-row.active { background: var(--paper); border-color: var(--line); }
+.field-row .label { font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+.field-row .value { font-family: var(--mono); font-weight: 700; font-size: 1.02rem; }
+.field-row .value.edited { color: var(--blue); }
+.conf { height: 4px; width: 46px; background: var(--muted); border-radius: 2px; overflow: hidden; }
+.conf > span { display: block; height: 100%; background: var(--green); }
+
+/* ---- reasoning ledger (audit trail) ------------------------------------------------- */
+.trail { list-style: none; margin: 0; padding: 0; }
+.trail li { position: relative; padding: 0 0 18px 26px; }
+.trail li::before { content: ""; position: absolute; left: 6px; top: 4px; width: 9px; height: 9px; border-radius: 50%; background: var(--navy); }
+.trail li::after { content: ""; position: absolute; left: 10px; top: 13px; bottom: -4px; width: 1.5px; background: var(--line); }
+.trail li:last-child::after { display: none; }
+.trail .step { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+.trail .detail { font-size: 0.95rem; }
+.trail .detail .mono { color: var(--navy); }
+
+/* ---- callouts ----------------------------------------------------------------------- */
+.callout { border-left: 4px solid var(--line); padding: 12px 14px; border-radius: 0 5px 5px 0; background: var(--paper); }
+.callout.review { border-color: var(--amber); }
+.callout.blocked { border-color: var(--red); background: rgba(180, 35, 24, 0.05); }
+.callout .h { font-weight: 700; color: var(--navy); margin-bottom: 3px; }
+.callout.blocked .h { color: var(--red); }
+
+.hairline { height: 1px; background: var(--line); border: 0; margin: 0; }
+.small { font-size: 0.85rem; color: var(--ink-soft); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* Skip link — hidden until focused (WCAG 2.4.1). */
+.skip-link {
+  position: absolute; left: 8px; top: -60px; z-index: 100;
+  background: var(--navy); color: #fff; padding: 10px 14px; border-radius: 6px;
+  font-weight: 700; text-decoration: none; transition: top 0.15s ease;
+}
+.skip-link:focus { top: 8px; }
+
+/* Two-column journey layout, collapses to one column on narrow viewports (1.4.10 Reflow). */
+.two-col { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+@media (max-width: 900px) {
+  .two-col { grid-template-columns: 1fr; }
+  .masthead .wrap { flex-wrap: wrap; gap: 4px 12px; }
+  .masthead .edition { font-size: 0.62rem; }
+}
+
+/* Correction micro-moment: flash a recalculated value. */
+@keyframes flash-update {
+  0% { background: rgba(37, 99, 235, 0.22); }
+  100% { background: transparent; }
+}
+.flash { animation: flash-update 0.9s ease-out; border-radius: 4px; }
+
+/* Print: the readiness packet screen prints cleanly. */
+@media print {
+  .masthead, nav, button, .btn, .skip-link { display: none !important; }
+  body { background: #fff; }
+  .sheet { box-shadow: none; border: 1px solid #999; }
+  .docstage { break-inside: avoid; }
+}
